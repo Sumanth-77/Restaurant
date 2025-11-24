@@ -1,38 +1,54 @@
-import React from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState } from "react";
+import { useLocation, Link } from "react-router-dom";
+import "./Header.css";
 
-const Header = () => {
-  const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-
-  const logout = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+export default function Header({ cart }) {
+  const location = useLocation();
+  const isHomePage = location.pathname === "/";
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="header">
+    <header className={`header ${isHomePage ? "transparent" : ""}`}>
+      <nav className="header-nav">
+        <Link to="/" className="header-logo">
+          <h2>🍽️ Restaurant</h2>
+        </Link>
 
-      <div className="container nav">
-        <div className="logo"><Link to="/">MyRestaurant</Link></div>
-        <nav className="nav-links">
-          <Link to="/">Menu</Link>
+        <div className="nav-links">
+          <Link to="/">Home</Link>
+          <Link to="/menu">Menu</Link>
           <Link to="/cart">Cart</Link>
+          <Link to="/login">Login</Link>
+          <Link to="/register">Register</Link>
+        </div>
 
-          {token ? (
-            <button onClick={logout} style={{border:"none",background:"transparent",cursor:"pointer"}}>
-              Logout
-            </button>
-          ) : (
-            <>
-              <Link to="/login">Login</Link>
-              <Link to="/register">Register</Link>
-            </>
-          )}
-        </nav>
-      </div>
+        <button
+          className="menu-toggle"
+          onClick={() => setMenuOpen(!menuOpen)}
+        >
+          ☰
+        </button>
+      </nav>
+
+      {menuOpen && (
+        <div className="mobile-menu">
+          <Link to="/" onClick={() => setMenuOpen(false)}>
+            Home
+          </Link>
+          <Link to="/menu" onClick={() => setMenuOpen(false)}>
+            Menu
+          </Link>
+          <Link to="/cart" onClick={() => setMenuOpen(false)}>
+            Cart
+          </Link>
+          <Link to="/login" onClick={() => setMenuOpen(false)}>
+            Login
+          </Link>
+          <Link to="/register" onClick={() => setMenuOpen(false)}>
+            Register
+          </Link>
+        </div>
+      )}
     </header>
   );
-};
-
-export default Header;
+}

@@ -1,52 +1,91 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./CartPage.css";
 
 export default function CartPage({ cart, updateQuantity, removeItem }) {
-  const total = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    // Group items by id and count quantity
+    const groupedItems = {};
+    cart.forEach((item) => {
+      const key = item._id || item.id;
+      if (groupedItems[key]) {
+        groupedItems[key].quantity += 1;
+      } else {
+        groupedItems[key] = { ...item, quantity: item.qty || 1 };
+      }
+    });
+    setItems(Object.values(groupedItems));
+  }, [cart]);
+
+  const handleIncrease = (itemId) => {
+    const item = items.find((i) => (i._id || i.id) === itemId);
+    if (item) {
+      updateQuantity(itemId, item.quantity + 1);
+    }
+  };
+
+  const handleDecrease = (itemId) => {
+    const item = items.find((i) => (i._id || i.id) === itemId);
+    if (item && item.quantity > 1) {
+      updateQuantity(itemId, item.quantity - 1);
+    } else {
+      removeItem(itemId);
+    }
+  };
+
+  const totalPrice = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0
+  );
 
   return (
     <div className="cart-container">
-      <h1>Your Cart</h1>
+      <h1>Shopping Cart</h1>
 
-      <div className="cart-card">
-        <table className="cart-table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>Qty</th>
-              <th>Price</th>
-              <th></th>
-            </tr>
-          </thead>
+      {items.length === 0 ? (
+        <p className="empty-cart">Your cart is empty</p>
+      ) : (
+        <>
+          <div className="cart-items">
+            {items.map((item) => (
+              <div key={item._id || item.id} className="cart-item">
+                <img src={item.image} alt={item.name} />
+                <div className="item-details">
+                  <h3>{item.name}</h3>
+                  <p className="price">₹{item.price}</p>
+                </div>
 
-          <tbody>
-            {cart.map((item) => (
-              <tr key={item._id}>
-                <td className="item-name">{item.name}</td>
-
-                <td className="qty-controls">
-                  <button className="qty-btn" onClick={() => updateQuantity(item._id, item.qty - 1)}>-</button>
-                  <span className="qty">{item.qty}</span>
-                  <button className="qty-btn" onClick={() => updateQuantity(item._id, item.qty + 1)}>+</button>
-                </td>
-
-                <td className="item-price">₹{item.price}</td>
-
-                <td>
-                  <button className="remove-btn" onClick={() => removeItem(item._id)}>
-                    Remove
+                <div className="quantity-control">
+                  <button onClick={() => handleDecrease(item._id || item.id)}>
+                    −
                   </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+                  <span>{item.quantity}</span>
+                  <button onClick={() => handleIncrease(item._id || item.id)}>
+                    +
+                  </button>
+                </div>
 
-        <div className="cart-footer">
-          <h3>Total: ₹{total}</h3>
-          <button className="checkout-btn">Proceed to Checkout</button>
-        </div>
-      </div>
+                <div className="item-total">
+                  ₹{item.price * item.quantity}
+                </div>
+
+                <button
+                  className="remove-btn"
+                  onClick={() => removeItem(item._id || item.id)}
+                >
+                  🗑️
+                </button>
+              </div>
+            ))}
+          </div>
+
+          <div className="cart-summary">
+            <h2>Total: ₹{totalPrice}</h2>
+            <button className="checkout-btn">Checkout</button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -1,0 +1,8 @@
+/* frontend/src/components/CategoryLinks.css */
+.category-links { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+.cat-btn {
+  padding:8px 14px; border-radius:999px; border:none; background:rgba(255,255,255,0.12);
+  color:#fff; font-weight:700; cursor:pointer; backdrop-filter: blur(4px);
+}
+.cat-btn.active { background:#ffcb05; color:#111; }
+.cat-btn:hover { transform:translateY(-2px); }

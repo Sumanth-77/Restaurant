@@ -1,0 +1,123 @@
+.menu-container {
+  padding: 40px 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+  background: #f8f9fa;
+  min-height: calc(100vh - 70px);
+}
+
+.menu-container h1 {
+  text-align: center;
+  font-size: 48px;
+  margin-bottom: 40px;
+  color: #2c3e50;
+  text-shadow: none;
+  font-weight: 900;
+  letter-spacing: 2px;
+}
+
+.category-buttons {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 40px;
+  flex-wrap: wrap;
+  padding: 25px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: none;
+}
+
+.category-btn {
+  padding: 12px 24px;
+  border: 2px solid #e74c3c;
+  background-color: white;
+  color: #e74c3c;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 600;
+  box-shadow: none;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  font-size: 14px;
+}
+
+.category-btn:hover {
+  background-color: #e74c3c;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.2);
+}
+
+.category-btn.active {
+  background-color: #e74c3c;
+  color: white;
+  box-shadow: 0 6px 16px rgba(231, 76, 60, 0.3);
+}
+
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 24px;
+  padding: 0;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+}
+
+.product-card {
+  background: white;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 14px;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: none;
+}
+
+.product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 20px rgba(231, 76, 60, 0.15);
+}
+
+.product-card img {
+  width: 100%;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 12px;
+}
+
+.product-card h3 {
+  margin: 10px 0;
+  color: #2c3e50;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.product-card .price {
+  color: #e74c3c;
+  font-weight: 800;
+  font-size: 20px;
+  margin: 8px 0;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .menu-container {
+    padding: 20px 10px;
+  }
+
+  .menu-container h1 {
+    font-size: 36px;
+  }
+
+  .products-grid {
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 16px;
+  }
+}
