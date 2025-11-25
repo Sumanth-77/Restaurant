@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./CartPage.css";
 
 export default function CartPage({ cart, updateQuantity, removeItem }) {
   const [items, setItems] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Group items by id and count quantity
@@ -82,7 +84,12 @@ export default function CartPage({ cart, updateQuantity, removeItem }) {
 
           <div className="cart-summary">
             <h2>Total: ₹{totalPrice}</h2>
-            <button className="checkout-btn">Checkout</button>
+            <button 
+              className="checkout-btn"
+              onClick={() => navigate("/checkout")}
+            >
+              Proceed to Checkout
+            </button>
           </div>
         </>
       )}

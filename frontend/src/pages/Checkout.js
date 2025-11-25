@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import API from "../api";
 import { useNavigate } from "react-router-dom";
+import "./Checkout.css";
 
 const Checkout = () => {
   const [cart, setCart] = useState([]);
   const [coupon, setCoupon] = useState("");
   const [discount, setDiscount] = useState(0);
+  const [loading, setLoading] = useState(false);
   const nav = useNavigate();
 
   useEffect(() => {
@@ -13,63 +15,142 @@ const Checkout = () => {
     if (saved) setCart(JSON.parse(saved));
   }, []);
 
-  const subtotal = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+  const subtotal = cart.reduce((total, item) => total + item.price * (item.quantity || item.qty || 1), 0);
   const total = subtotal - discount;
 
   const applyCoupon = () => {
     if (coupon.toUpperCase() === "SAVE10") {
       setDiscount(subtotal * 0.1);
-      alert("Coupon applied!");
+      alert("Coupon applied! 10% discount");
     } else {
       alert("Invalid coupon");
     }
   };
 
-  const payNow = async () => {
+  const handleRazorpayPayment = async () => {
+    if (cart.length === 0) {
+      alert("Cart is empty!");
+      return;
+    }
+
+    setLoading(true);
+
     try {
-      await API.post("/orders", {
-        products: cart.map(c => ({ product: c._id, quantity: c.quantity })),
-        totalPrice: total,
-        discount
+      // Create order on backend
+      const response = await API.post("/orders/create", {
+        amount: total,
+        items: cart,
+        discount,
+        subtotal,
       });
 
-      localStorage.setItem("cart", "[]");
-      alert("Payment Successful!");
-      nav("/");
+      const { orderId } = response.data;
+
+      // Razorpay options
+      const options = {
+        key: "rzp_test_RjfCP34ylgL6kX", // Replace with your key
+        amount: total * 100, // Amount in paise
+        currency: "INR",
+        name: "Restaurant",
+        description: "Food Order Payment",
+        order_id: orderId,
+        handler: async (response) => {
+          try {
+            // Verify payment on backend
+            const verifyResponse = await API.post("/orders/verify", {
+              orderId: response.razorpay_order_id,
+              paymentId: response.razorpay_payment_id,
+              signature: response.razorpay_signature,
+            });
+
+            if (verifyResponse.data.success) {
+              localStorage.setItem("cart", "[]");
+              alert("Payment successful! Order placed.");
+              nav("/");
+            }
+          } catch (err) {
+            alert("Payment verification failed!");
+            console.error(err);
+          }
+        },
+        prefill: {
+          name: "Customer",
+          email: "customer@example.com",
+          contact: "9999999999",
+        },
+        theme: {
+          color: "#e74c3c",
+        },
+      };
+
+      // Open Razorpay checkout
+      const rzp = new window.Razorpay(options);
+      rzp.open();
     } catch (err) {
-      alert("Payment Failed");
+      alert("Error creating order!");
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div style={{maxWidth:600, margin:"20px auto"}}>
+    <div className="checkout-container">
       <h1>Checkout</h1>
 
-      <div className="card" style={{padding:16}}>
-        {cart.map(item => (
-          <div key={item._id} style={{display:"flex", justifyContent:"space-between"}}>
-            <div>{item.name} x {item.quantity}</div>
-            <div>₹{item.price * item.quantity}</div>
+      <div className="checkout-card">
+        <h2>Order Summary</h2>
+
+        <div className="cart-items">
+          {cart.map((item) => (
+            <div key={item._id} className="checkout-item">
+              <span>{item.name}</span>
+              <span>x {item.quantity || item.qty || 1}</span>
+              <span className="price">
+                ₹{item.price * (item.quantity || item.qty || 1)}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="checkout-summary">
+          <div className="summary-row">
+            <span>Subtotal:</span>
+            <span>₹{subtotal}</span>
           </div>
-        ))}
 
-        <hr />
+          {discount > 0 && (
+            <div className="summary-row discount">
+              <span>Discount:</span>
+              <span>-₹{discount.toFixed(2)}</span>
+            </div>
+          )}
 
-        <p>Subtotal: ₹{subtotal}</p>
-        <p>Discount: ₹{discount}</p>
-        <h3>Total: ₹{total}</h3>
+          <div className="summary-row total">
+            <span>Total:</span>
+            <span>₹{total.toFixed(2)}</span>
+          </div>
+        </div>
 
-        <input
-          placeholder="Coupon code"
-          value={coupon}
-          onChange={(e)=>setCoupon(e.target.value)}
-          style={{padding:8, marginTop:12}}
-        />
+        <div className="coupon-section">
+          <input
+            type="text"
+            placeholder="Enter coupon code (Try: SAVE10)"
+            value={coupon}
+            onChange={(e) => setCoupon(e.target.value)}
+            className="coupon-input"
+          />
+          <button onClick={applyCoupon} className="apply-btn">
+            Apply
+          </button>
+        </div>
 
-        <button onClick={applyCoupon} style={{marginLeft:8}}>Apply</button>
-
-        <button onClick={payNow} style={{marginTop:16, width:"100%"}}>
-          Pay Now (Demo)
+        <button
+          onClick={handleRazorpayPayment}
+          className="pay-btn"
+          disabled={loading || cart.length === 0}
+        >
+          {loading ? "Processing..." : "Pay with Razorpay"}
         </button>
       </div>
     </div>

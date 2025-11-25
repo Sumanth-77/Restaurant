@@ -28,14 +28,15 @@ export default function Register() {
     }
 
     try {
-      const response = await API.post("/auth/register", {
+      const response = await API.post("/auth/signup", {
         name,
         email,
         password,
       });
 
+      localStorage.setItem("token", response.data.token);
       setSuccess("Account created successfully! Redirecting...");
-      setTimeout(() => navigate("/login"), 2000);
+      setTimeout(() => navigate("/"), 2000);
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed");
       console.error(err);
