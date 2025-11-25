@@ -41,6 +41,18 @@ export default function CartPage({ cart, updateQuantity, removeItem }) {
     0
   );
 
+  const handleCheckout = () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      alert("Please login to proceed with checkout!");
+      navigate("/login");
+      return;
+    }
+
+    navigate("/checkout");
+  };
+
   return (
     <div className="cart-container">
       <h1>Shopping Cart</h1>
@@ -86,7 +98,7 @@ export default function CartPage({ cart, updateQuantity, removeItem }) {
             <h2>Total: ₹{totalPrice}</h2>
             <button 
               className="checkout-btn"
-              onClick={() => navigate("/checkout")}
+              onClick={handleCheckout}
             >
               Proceed to Checkout
             </button>

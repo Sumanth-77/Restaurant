@@ -1,56 +1,77 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");
 
-// Signup Route
-router.post("/signup", async (req, res) => {
-    const { name, email, password } = req.body;
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
-    try {
-        let user = await User.findOne({ email });
-        if (user) return res.status(400).json({ message: "User already exists" });
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
 
-        user = new User({ name, email, password });
+  try {
+    console.log("Login attempt - Email:", email);
+    console.log("Admin email from env:", ADMIN_EMAIL);
 
-        // Hash password
-        const salt = await bcrypt.genSalt(10);
-        user.password = await bcrypt.hash(password, salt);
-
-        await user.save();
-
-        // Create JWT token
-        const payload = { user: { id: user.id } };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-        res.json({ token });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
+    // Check if admin login
+    if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
+      console.log("Admin login successful");
+      const token = jwt.sign(
+        { email: ADMIN_EMAIL, isAdmin: true },
+        process.env.JWT_SECRET
+      );
+      return res.json({
+        token,
+        user: { email: ADMIN_EMAIL, name: "Admin" },
+        isAdmin: true,
+      });
     }
+
+    // Check regular user
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+
+    if (user.password !== password) {
+      return res.status(400).json({ message: "Invalid password" });
+    }
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    res.json({
+      token,
+      user: { _id: user._id, name: user.name, email: user.email },
+      isAdmin: false,
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
-// Login Route
-router.post("/login", async (req, res) => {
-    const { email, password } = req.body;
+router.post("/signup", async (req, res) => {
+  const { name, email, password } = req.body;
 
-    try {
-        const user = await User.findOne({ email });
-        if (!user) return res.status(400).json({ message: "Invalid Credentials" });
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid Credentials" });
-
-        // Create JWT token
-        const payload = { user: { id: user.id } };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
-
-        res.json({ token });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server error");
+  try {
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ message: "User already exists" });
     }
+
+    user = new User({ name, email, password });
+    await user.save();
+
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    res.json({
+      token,
+      user: { _id: user._id, name: user.name, email: user.email },
+      isAdmin: false,
+    });
+  } catch (err) {
+    console.error("Signup error:", err);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router;

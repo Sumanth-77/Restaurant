@@ -80,6 +80,8 @@ import Checkout from "./pages/Checkout";
 import CategoryPage from "./pages/CategoryPage";
 import Header from "./components/Header";
 import Menu from "./pages/Menu";
+import AdminPanel from "./pages/AdminPanel";
+import UserOrders from "./pages/UserOrders";
 
 const loadCart = () => {
   try {
@@ -132,6 +134,7 @@ export default function App() {
       <Header cart={cart} />
       <div className="container">
         <Routes>
+          <Route path="/orders" element={<UserOrders />} />
           <Route path="/" element={<Home addToCart={addToCart} />} />
           <Route path="/menu" element={<Menu addToCart={addToCart} />} />
           <Route
@@ -140,6 +143,7 @@ export default function App() {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/admin" element={<AdminPanel />} />
           <Route
             path="/cart"
             element={
@@ -151,6 +155,7 @@ export default function App() {
             }
           />
           <Route path="/checkout" element={<Checkout cart={cart} />} />
+          
         </Routes>
       </div>
     </BrowserRouter>

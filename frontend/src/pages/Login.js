@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import API from "../api";
 import "./Login.css";
 
 export default function Login() {
@@ -10,12 +11,18 @@ export default function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+
     try {
-      // Add your login API call here
-      console.log("Login:", { email, password });
+      const response = await API.post("/auth/login", { email, password });
+      localStorage.setItem("token", response.data.token);
+      localStorage.setItem("isAdmin", response.data.isAdmin || false);
+      localStorage.setItem("userEmail", response.data.user.email);
+      
       navigate("/");
     } catch (err) {
-      setError("Invalid credentials");
+      setError(err.response?.data?.message || "Invalid credentials");
+      console.error(err);
     }
   };
 
